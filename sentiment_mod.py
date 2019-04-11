@@ -4,6 +4,8 @@ from nltk.corpus import movie_reviews
 from nltk.classify.scikitlearn import SklearnClassifier
 from nltk import word_tokenize
 import pickle
+from textblob import TextBlob
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
 
@@ -12,6 +14,8 @@ from sklearn.svm import SVC, LinearSVC, NuSVC
 
 from nltk.classify import ClassifierI
 from statistics import mode
+
+##### This is all part of the combination of 7 classifier to identify the sentiment of a tweet
 
 class VoteClassifier(ClassifierI):
     def __init__(self, *classifiers):
@@ -101,3 +105,36 @@ def sentiment(text):
     feats = find_features(text)
     
     return voted_classifier.classify(feats), voted_classifier.confidence(feats)
+
+#### This is part of the textblob package that generates a sentiment using textblobs algorithm
+
+def sentiment_textblob(text):
+    analyze = TextBlob(text)
+
+    if analyze.polarity == 0.0:
+        sentiment_value = "neutral"
+        return sentiment_value, analyze.polarity
+    elif analyze.polarity < 0.0:
+        sentiment_value = "negative"
+        return sentiment_value, analyze.polarity
+    elif analyze.polarity > 0.0:
+        sentiment_value = "positive"
+        return sentiment_value, analyze.polarity
+
+    #return sentiment_value, analyze.polarity
+
+
+#### This is part of the nltk package that generate a sentiment using SentimentIntensityAnalyzer algorithm
+
+def sentiment_nltk(text):
+    sia = SentimentIntensityAnalyzer()
+
+    if sia.polarity_scores(text)["compound"] == 0.0:
+        sentiment_value = "neutral"
+        return sentiment_value, sia.polarity_scores(text)["compound"]
+    elif sia.polarity_scores(text)["compound"] < 0.0:
+        sentiment_value = "negative"
+        return sentiment_value, sia.polarity_scores(text)["compound"]
+    elif sia.polarity_scores(text)["compound"] > 0.0:
+        sentiment_value = "positive"
+        return sentiment_value, sia.polarity_scores(text)["compound"]
