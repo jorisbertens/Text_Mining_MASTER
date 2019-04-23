@@ -1,15 +1,13 @@
-
-# coding: utf-8
-
-# In[5]:
-
-
 # import necessary libraries
 import nltk
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
+from langdetect import detect
+import re
+import string
+import pandas as pd
 
 # function for tokenizing a dictionary with the string as the value (dict{"asd":"THIS IS TOKENIZED"})
 def tokenize_tw(dct):
@@ -47,12 +45,35 @@ def stemmatize(dct,language):
         dct[j][1] = stemmed
     return dct
 
+# filter the english tweets while doing the livestream
+def filter_english(dictionary):
+    blanco = "blanco"
+    try:
+        language = detect(dictionary["text"])
+        if language == "en":
+            dictionary["language"] = language
+        else:
+            dictionary = {"text": "Not English"}
+    except:
+        dictionary = {"text": "Not English"}
+    return dictionary
 
-# In[1]:
+# remove unecessary characters from the tweets on the leave streamed tweets
+def removal_function(dictionary):
+    y = dictionary["text"]
 
+    y = re.sub(r"@[A-Z-a-z-0-9_.]+", "", y)  # remove users with@
+    y = y.replace("\n", " ")  # remove enters
+    y = re.sub(r"http\S+", "", y)  # removes links
+    y = re.sub("\s+", " ", y)  # removes more one spaces
+    y = re.sub(r"&(amp;)", "&", y)  # removes and in html format
+    y = re.sub(r"[0-9]", "", y)  # remove numbers
+    y = re.sub(r"(.+?)\1+", r"\1", y)  # remove repeted letters
+    y = re.sub("\s+", " ", y)  # remove more one space
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+    dictionary["text"] = y
+
+    return dictionary
 
 """
 This code implements a basic, Twitter-aware tokenizer.
