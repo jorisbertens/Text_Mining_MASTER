@@ -75,6 +75,154 @@ def removal_function(dictionary):
 
     return dictionary
 
+def df_filter_english(dataframe):
+    blanco = "blanco"
+    text_column = dataframe["text"]
+    
+    # Create a list saving all the languages of the tweets
+    language_list =[]
+
+    for i in text_column:
+
+        try:
+            language = detect(i)
+            language_list.append(language)
+        except:
+            language_list.append(blanco)    
+    
+    dataframe["Language"] = language_list
+    
+    return dataframe.loc[dataframe['Language'] == "en"]
+
+def df_removal_function(dataframe):
+    new_text = []
+    text_column = dataframe["text"]
+    for i in text_column:
+        y = i
+
+        y = re.sub(r"@[A-Z-a-z-0-9_.]+","", y) #remove users with@
+        y = y.replace("\n"," ") # remove enters
+        y= re.sub(r"http\S+","",y) # removes links
+        y= re.sub("\s+"," ",y)  #removes more one spaces
+        y= re.sub(r"&(amp;)", "&", y) # removes and in html format
+        y = re.sub(r"[0-9]","",y) #remove numbers
+        y=re.sub(r"(.+?)\1+",r"\1",y) #remove repeted letters
+        y= re.sub("\s+"," ",y) #remove more one space
+
+        i = y
+        new_text.append(i)
+        
+    dataframe["text"] = new_text
+    return dataframe
+
+def df_tokenize_dataframe(dataframe):
+    text_column = dataframe["text"]
+    new_text = []
+    
+    for i in text_column:
+        i = i.lower()
+        i = RegexpTokenizer(r'\w+').tokenize(i)
+        new_text.append(i)
+        
+    text_column = new_text
+    dataframe["text"] = text_column
+    
+    return dataframe
+
+def df_remove_stopwords_dataframe(dataframe):
+    text_column = dataframe["text"]
+    new_words = []
+    
+    for i in text_column:
+        stop_words = set(stopwords.words("english"))
+        stop_text = [j for j in i if not j in stop_words]
+        new_words.append(stop_text)
+    
+    text_column = new_words
+    dataframe["text"] = text_column
+    
+    return dataframe
+
+def df_lemmatize_dataframe(dataframe):
+    wordnet = WordNetLemmatizer()
+    text_column = dataframe["text"]
+    new_words = []
+    
+    for i in text_column:
+        lemma = [wordnet.lemmatize(token) for token in i]
+        new_words.append(lemma)
+        
+    text_column = new_words
+    dataframe["text"] = text_column
+    
+    return dataframe
+
+def df_stemmatize_dataframe(dataframe):
+    stemmer = nltk.SnowballStemmer("english")
+    text_column = dataframe["text"]
+    new_words= []
+    
+    for i in text_column:
+        stemmed = [stemmer.stem(token) for token in i]
+        new_words.append(stemmed)
+    
+    text_column = new_words
+    dataframe["text"] = text_column
+    
+    return dataframe
+
+def df_untokenize_dataframe(dataframe):
+    text_column = dataframe["text"]
+    new_text = []
+    
+    for i in text_column:
+        i = " ".join(i)
+        new_text.append(i)
+        
+    text_column = new_text
+    dataframe["text"] = text_column
+    
+    return dataframe
+
+def add_sentiment_textblob(dataframe):
+    text_column = dataframe["text"]
+    sentiment_textblob_list = []
+
+    for i in text_column:
+        sentiment_value, polarity = s.sentiment_textblob(i)#sentiment_textblob(i)
+        sentiment_textblob_list.append(sentiment_value)
+
+    dataframe["sentiment_textblob"] = sentiment_textblob_list
+    
+    return dataframe
+
+def add_sentiment_nltk(dataframe):
+    text_column = dataframe["text"]
+    sentiment_nltk_list = []
+
+    for i in text_column:
+        sentiment_value, polarity = s.sentiment_nltk(i)#sentiment_textblob(i)
+        sentiment_nltk_list.append(sentiment_value)
+
+    dataframe["sentiment_nltk"] = sentiment_nltk_list
+    
+    return dataframe
+
+def add_sentiment_own(dataframe):
+    text_column = dataframe["text"]
+    sentiment_own_list = []
+
+    for i in text_column:
+        sentiment_value, polarity = s.sentiment(i)#sentiment_textblob(i)
+        if polarity < 0.75:
+            sentiment_own_list.append("neutral")
+        else:
+            sentiment_own_list.append(sentiment_value)
+
+    dataframe["sentiment_own_classifiers"] = sentiment_own_list
+    
+    return dataframe
+
 """
 This code implements a basic, Twitter-aware tokenizer.
 A tokenizer is a function that splits a string of text into words. In
